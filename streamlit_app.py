@@ -130,7 +130,7 @@ if st.button("Update"):
 st.header("View All Employees")
 employees = view_all_employees()
 if employees:
-    df = pd.DataFrame(employees, columns=["ID", "Name", "Country", "Company", "Designation", "Dietary Restriction", "Contact No.", "Address", "Vehicle No.", "Posting Date", "Status", "Golf", "Golf Handicap", "De-posted Date"])
+    df = pd.DataFrame(employees, columns=["ID", "Country", "Company", "Name", "Designation", "Dietary Restriction", "Contact No.", "Address", "Vehicle No.", "Posting Date", "Status", "Golf", "Golf Handicap", "De-posted Date"])
     st.dataframe(df, index=False)
 else:
     st.warning("No employees found.")
