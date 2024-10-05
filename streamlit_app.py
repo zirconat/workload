@@ -9,9 +9,9 @@ sheet = df.active #Assuming the data is in the first sheet
 
 # Define CRUD functions
 
-def add_record(id, country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap, depost_date):
+def add_record(country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap):
     max_row = sheet.max_row + 1
-    sheet['A' + str(max_row)] = id 
+    #sheet['A' + str(max_row)] = id 
     sheet['B' + str(max_row)] = country
     sheet['C' + str(max_row)] = company
     sheet['D' + str(max_row)] = name
@@ -74,63 +74,64 @@ st.title("👤 Namelist")
 
 # Add Employee
 st.header("Add New Employee")
-country = st.text_input("Country")
-company = st.text_input("Company")
-name = st.text_input("Name")
-designation = st.text_input("Designation")
-dietary = st.text_input("Dietary Restriction")
-contact = st.text_input("Contact No.")
-address = st.text_input("Address")
-vehicle = st.text_input("Vehicle No.")
-posting_date = st.date_input("Posting Date")
-status = st.radio("Status", ("Active", "De-posted"))
-if status == "De-posted":
-    depost_date = st.date_input("De-posted Date")
-golf = st.radio("Plays golf?", ("Yes", "No"))
-golf_handicap = st.radio("Golf Hanficap?", ("No", "Yes"))
-if golf_handicap == "Yes":
-    golf_handicap = st.text_input("What's the handicap?")
-if st.button("Add"):
-    add_record(country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap, depost_date)
-    st.success("Added successfully!")
+with st.expander("Add"):
+    country = st.text_input("Country")
+    company = st.text_input("Company")
+    name = st.text_input("Name")
+    designation = st.text_input("Designation")
+    dietary = st.text_input("Dietary Restriction")
+    contact = st.text_input("Contact No.")
+    address = st.text_input("Address")
+    vehicle = st.text_input("Vehicle No.")
+    posting_date = st.date_input("Posting Date")
+    status = "Active"
+    golf = st.radio("Plays golf?", ("Yes", "No"))
+    golf_handicap = st.text_input("Golf Handicap (Please key in N.A if no handicap): ")
+
+    if st.button("Add"):
+        add_record(country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap)
+        st.success("Added successfully!")
 
 # Delete Employee
 st.header("Delete Employee")
-id = st.number_input("Employee ID")
+with st.expander("Delete"):
+    id = st.number_input("Employee ID")
 
-if st.button("Delete"):
-    del_record(id)
-    st.success("Deleted successfully!")
+    if st.button("Delete"):
+        del_record(id)
+        st.success("Deleted successfully!")
 
 # Update Employee
 st.header("Update Employee")
-#id = st.number_input("Employee ID")
-country = st.text_input("New Country")
-company = st.text_input("New Company")
-name = st.text_input("New Name")
-designation = st.text_input("New Designation")
-dietary = st.text_input("New Dietary Restriction")
-contact = st.text_input("New Contact No.")
-address = st.text_input("New Address")
-vehicle = st.text_input("New Vehicle No.")
-posting_date = st.date_input("New Posting Date")
-status = st.radio("New Status", ("Active", "De-posted"))
-if status == "De-posted":
-    depost_date = st.date_input("De-posted Date")
-golf = st.radio("New Plays golf?", ("Yes", "No"))
-golf_handicap = st.radio("New Golf Hanficap?", ("No", "Yes"))
-if golf_handicap == "Yes":
-    golf_handicap = st.text_input("What's the handicap?")
+with st.expander("Update"):
+    #id = st.number_input("Employee ID")
+    country = st.text_input("New Country")
+    company = st.text_input("New Company")
+    name = st.text_input("New Name")
+    designation = st.text_input("New Designation")
+    dietary = st.text_input("New Dietary Restriction")
+    contact = st.text_input("New Contact No.")
+    address = st.text_input("New Address")
+    vehicle = st.text_input("New Vehicle No.")
+    posting_date = st.date_input("New Posting Date")
+    status = st.radio("New Status", ("Active", "De-posted"))
+    if status == "De-posted":
+        depost_date = st.date_input("De-posted Date")
+    golf = st.radio("New Plays golf?", ("Yes", "No"))
+    golf_handicap = st.radio("New Golf Hanficap?", ("No", "Yes"))
+    if golf_handicap == "Yes":
+        golf_handicap = st.text_input("What's the handicap?")
 
-if st.button("Update"):
-    update_record(id, country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap, depost_date)
-    st.success("Updated successfully!")
+    if st.button("Update"):
+        update_record(id, country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap, depost_date)
+        st.success("Updated successfully!")
 
 # View All Employees
 st.header("View All Employees")
-employees = view_all_employees()
-if employees:
-    df = pd.DataFrame(employees, columns=["ID", "Country", "Company", "Name", "Designation", "Dietary Restriction", "Contact No.", "Address", "Vehicle No.", "Posting Date", "Status", "Golf", "Golf Handicap", "De-posted Date"])
-    st.dataframe(df, index=False)
-else:
-    st.warning("No employees found.")
+with st.expander("View all"):
+    employees = view_all_employees()
+    if employees:
+        df = pd.DataFrame(employees, columns=["ID", "Country", "Company", "Name", "Designation", "Dietary Restriction", "Contact No.", "Address", "Vehicle No.", "Posting Date", "Status", "Golf", "Golf Handicap", "De-posted Date"])
+        st.dataframe(df, index=False)
+    else:
+        st.warning("No employees found.")
