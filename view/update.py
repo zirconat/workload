@@ -74,8 +74,17 @@ if st.button("Download current list"):
         st.download_button(label="Download", data=file, file_name="namelist.xlsx")
 
 
+st.header("What would you like to do?")
+# View All Employees
+with st.expander("View all"):
+    namelist = view_all_employees()
+    if namelist:
+        df = pd.DataFrame(namelist, columns=["ID", "Country", "Company", "Name", "Designation", "Dietary Restriction", "Contact No.", "Address", "Vehicle No.", "Posting Date", "Status", "Golf", "Golf Handicap", "De-posted Date"])
+        st.dataframe(df.iloc[1:],hide_index=True)
+    else:
+        st.warning("No employees found.")
+
 # Add Employee
-st.header("Add New Employee")
 with st.expander("Add"):
     country = st.text_input("Country")
     company = st.text_input("Company")
@@ -95,7 +104,6 @@ with st.expander("Add"):
         st.success("Added successfully!") 
 
 # Delete Employee
-st.header("Delete Employee")
 with st.expander("Delete"):
     id = st.number_input("Employee ID")
 
@@ -104,7 +112,6 @@ with st.expander("Delete"):
         st.success("Deleted successfully!")
 
 # Update Employee
-st.header("Update Employee")
 with st.expander("Update"):
     id = st.number_input("Current Employee ID")
     country = st.text_input("New Country")
@@ -128,12 +135,3 @@ with st.expander("Update"):
         update_record(id, country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap, depost_date)
         st.success("Updated successfully!")
 
-# View All Employees
-st.header("View All Employees")
-with st.expander("View all"):
-    namelist = view_all_employees()
-    if namelist:
-        df = pd.DataFrame(namelist, columns=["ID", "Country", "Company", "Name", "Designation", "Dietary Restriction", "Contact No.", "Address", "Vehicle No.", "Posting Date", "Status", "Golf", "Golf Handicap", "De-posted Date"])
-        st.dataframe(df.iloc[1:],hide_index=True)
-    else:
-        st.warning("No employees found.")
