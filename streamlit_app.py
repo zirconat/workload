@@ -9,9 +9,9 @@ sheet = df.active #Assuming the data is in the first sheet
 
 # Define CRUD functions
 
-def add_record(country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap):
+def add_record(id, country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap):
     max_row = sheet.max_row + 1
-    #sheet['A' + str(max_row)] = id 
+    sheet['A' + str(max_row)] = id 
     sheet['B' + str(max_row)] = country
     sheet['C' + str(max_row)] = company
     sheet['D' + str(max_row)] = name
@@ -28,7 +28,7 @@ def add_record(country, company, name, designation, dietary, contact, address, v
 
 def del_record(id):
     row_to_delete = None
-    for row in df.iter_rows(values_only=True):
+    for row in sheet.iter_rows(values_only=True):
         if row[0] == id:
             row_to_delete = row
             break
@@ -72,6 +72,16 @@ st.set_page_config(
 )
 st.title("👤 Namelist")
 
+ # Download button
+if st.button("Download current list"):
+    temp_file = "temp_database.xlsx"
+    df.save(temp_file)
+        
+    # Download the file
+    with open(temp_file, "rb") as file:
+        st.download_button(label="Download", data=file, file_name="namelist.xlsx")
+
+
 # Add Employee
 st.header("Add New Employee")
 with st.expander("Add"):
@@ -90,7 +100,7 @@ with st.expander("Add"):
 
     if st.button("Add"):
         add_record(country, company, name, designation, dietary, contact, address, vehicle, posting_date, status, golf, golf_handicap)
-        st.success("Added successfully!")
+        st.success("Added successfully!") 
 
 # Delete Employee
 st.header("Delete Employee")
@@ -104,7 +114,7 @@ with st.expander("Delete"):
 # Update Employee
 st.header("Update Employee")
 with st.expander("Update"):
-    #id = st.number_input("Employee ID")
+    id = st.number_input("Current Employee ID")
     country = st.text_input("New Country")
     company = st.text_input("New Company")
     name = st.text_input("New Name")
@@ -129,9 +139,9 @@ with st.expander("Update"):
 # View All Employees
 st.header("View All Employees")
 with st.expander("View all"):
-    employees = view_all_employees()
-    if employees:
-        df = pd.DataFrame(employees, columns=["ID", "Country", "Company", "Name", "Designation", "Dietary Restriction", "Contact No.", "Address", "Vehicle No.", "Posting Date", "Status", "Golf", "Golf Handicap", "De-posted Date"])
-        st.dataframe(df, index=False)
+    namelist = view_all_employees()
+    if namelist:
+        df = pd.DataFrame(namelist, columns=["ID", "Country", "Company", "Name", "Designation", "Dietary Restriction", "Contact No.", "Address", "Vehicle No.", "Posting Date", "Status", "Golf", "Golf Handicap", "De-posted Date"])
+        st.dataframe(df.iloc[1:],hide_index=True)
     else:
         st.warning("No employees found.")
