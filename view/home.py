@@ -7,6 +7,7 @@ from streamlit_card import card
 # Load the Excel dataset
 df = pd.read_excel("namelist.xlsx")
 
+st.write("Find the one you need!")
 # Create a search box
 search_query = st.text_input("Search by Country or Company:")
 

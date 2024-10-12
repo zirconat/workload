@@ -141,6 +141,8 @@ action = st.selectbox("Choose an action:", ["Add Entry", "Update Entry", "Delete
 # Load the Excel dataset
 df = pd.read_excel("namelist.xlsx")
 
+with st.expander("View list"):
+    st.dataframe(df.iloc[:, 1:],hide_index=False)
 # Define functions for each action
 def add_entry():
     st.title("Add New Entry")
@@ -180,8 +182,7 @@ def add_entry():
 
 def update_entry():
     st.title("Update Entry")
-    with st.expander("View list"):
-        st.dataframe(df.iloc[:, 1:],hide_index=False)
+    
     entry_id = st.number_input("Entry ID (Choose from the list above)")
 
     if entry_id in df.index:
@@ -218,8 +219,7 @@ def update_entry():
 
 def delete_entry():
     st.title("Delete Entry")
-
-    entry_id = st.number_input("Entry ID")
+    entry_id = st.number_input("Entry ID (Choose from the list above)")
 
     if st.button("Delete Entry"):
         if entry_id in df.index:
@@ -233,7 +233,7 @@ def view_all_entries():
     st.title("View All Entries")
 
     #st.dataframe(df)
-    st.dataframe(df.iloc[0:],hide_index=True)
+    st.dataframe(df.iloc[:,1:],hide_index=True)
 
 # Run the selected action
 if action == "Add Entry":

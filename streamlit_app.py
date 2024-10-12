@@ -4,13 +4,12 @@ import streamlit as st
 import openpyxl
 
 st.set_page_config(
-    page_title=" Trips & Visits",
-    page_icon=":airplane:",
+    page_title=" Namelist",
+    page_icon="👤",
     layout="wide"
 )
 
-st.title(" Database")
-st.write("Find the one you need!")
+st.title("👤 Database")
 
 df = openpyxl.load_workbook('namelist.xlsx')
 sheet = df.active #Assuming the data is in the first sheet
