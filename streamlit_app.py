@@ -90,21 +90,21 @@ if 'contacts_df' not in st.session_state:
         "Albert", "SC, Abc", "Australia", "CompanyA",
         "98765432", "N/A", "123 bsdlk slhf", "456 Home Rd, Perth",
         "sleeping", "NIL", "Deepavali", "NYR, ALSE",
-        "Active", "A", None,
+        "Active", "A", None, # No profile picture for Albert initially
         "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
     ]
     st.session_state.contacts_df.loc[1] = [
         "Bob The Builder", "Project Manager", "Canada", "BuildCo",
         "987-654-3210", "654-321-0987", "789 Construction Blvd, Toronto",
         "101 Maple Lane, Toronto", "Gardening, Cycling", "None",
-        "Canada Day", "Client Meeting", "Active", "B", None,
+        "Canada Day", "Client Meeting", "Active", "B", None, # No profile picture for Bob initially
         "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
     ]
     st.session_state.contacts_df.loc[2] = [
         "Charlie Chaplin", "Actor", "UK", "Comedy Gold Studios",
         "555-123-4567", "555-987-6543", "Studio 5, London",
         "1 Baker Street, London", "Filmmaking, Chess", "Vegan",
-        "Halloween", "Film Premiere", "Inactive", "C", None,
+        "Halloween", "Film Premiere", "Inactive", "C", None, # No profile picture for Charlie initially
         "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
     ]
 
@@ -211,7 +211,7 @@ def edit_contact_form(contact, index):
                 if name != contact["Name"]: changes.append(f"Name changed from '{contact['Name']}' to '{name}'")
                 if designation != contact["Designation"]: changes.append(f"Designation changed from '{contact['Designation']}' to '{designation}'")
                 if country != contact["Country"]: changes.append(f"Country changed from '{contact['Country']}' to '{country}'")
-                if company != contact["Company"]: changes.append(f"Company changed from '{contact['Company']}' to '{company}'")
+                if company != contact["Company"]: changes.append(f"Company changed from '{company['Company']}' to '{company}'")
                 if phone_number != contact["Phone Number"]: changes.append(f"Phone Number changed from '{contact['Phone Number']}' to '{phone_number}'")
                 if office_number != contact["Office Number"]: changes.append(f"Office Number changed from '{contact['Office Number']}' to '{office_number}'")
                 if office_address != contact["Office Address"]: changes.append(f"Office Address changed from '{contact['Office Address']}' to '{office_address}'")
@@ -273,9 +273,11 @@ def display_contact_card(contact, index):
                     image = Image.open(io.BytesIO(contact["Profile Picture"]))
                     st.image(image, width=90)
                 except:
-                    st.image("https://via.placeholder.com/90", width=90, caption="No Image")
+                    # Fallback if image data is corrupted or unreadable
+                    st.image("https://via.placeholder.com/90/cccccc/ffffff?text=No+Image", width=90, caption="No Image")
             else:
-                st.image("https://via.placeholder.com/90", width=90, caption="No Image")
+                # Default image when no profile picture
+                st.image("https://via.placeholder.com/90/cccccc/ffffff?text=No+Image", width=90, caption="No Image")
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col2:
@@ -303,7 +305,7 @@ def display_contact_card(contact, index):
         st.markdown('</div>', unsafe_allow_html=True)
 
         if contact["Last Updated On"]:
-            st.info(f"Last updated by {contact['Last Updated By']} at {contact['Last Updated On']}") # Reverted to st.info
+            st.info(f"Last updated by {contact['Last Updated By']} at {contact['Last Updated On']}") # Retained st.info
 
         if st.session_state.user_role == "admin":
             col_edit, col_history = st.columns(2)
@@ -399,7 +401,7 @@ def search_and_filter():
         # Exclude 'Profile Picture' column from the string conversion and search
         # Convert all other columns to string and then search
         mask = filtered_df.drop(columns=["Profile Picture"], errors='ignore').apply(
-            lambda row: row.astype(str).str.lower().str.contains(search_query_lower).any(), axis=1
+            lambda row: row.astype(str).str.lower().str.contains(search_query_lower, na=False).any(), axis=1
         )
         filtered_df = filtered_df[mask]
 
@@ -455,7 +457,7 @@ def main():
         filtered_contacts = search_and_filter()
 
         # Display number of contacts
-        st.markdown(f"**Displaying {len(filtered_contacts)} results.**")
+        st.markdown(f"**Currently displaying {len(filtered_contacts)} contacts.**")
 
         if not filtered_contacts.empty:
             for index, contact in filtered_contacts.iterrows():
