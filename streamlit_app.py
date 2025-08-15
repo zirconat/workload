@@ -91,8 +91,8 @@ if 'contacts_df' not in st.session_state:
     st.session_state.contacts_df.loc[1] = [
         "Bob The Builder", "Project Manager", "Canada", "BuildCo",
         "987-654-3210", "654-321-0987", "789 Construction Blvd, Toronto",
-        "101 Maple Lane, Toronto", "Gardening, Cycling", "None",
-        "Canada Day", "Client Meeting", "Active", "B", None, # No profile picture for Bob initially
+        "101 Maple Lane, Toronto", "Gardening, Cycling", "None", # No profile picture for Bob initially
+        "Canada Day", "Client Meeting", "Active", "B", None,
         "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
     ]
     st.session_state.contacts_df.loc[2] = [
@@ -206,7 +206,7 @@ def edit_contact_form(contact, index):
                 if name != contact["Name"]: changes.append(f"Name changed from '{contact['Name']}' to '{name}'")
                 if designation != contact["Designation"]: changes.append(f"Designation changed from '{contact['Designation']}' to '{designation}'")
                 if country != contact["Country"]: changes.append(f"Country changed from '{contact['Country']}' to '{country}'")
-                if company != contact["Company"]: changes.append(f"Company changed from '{company['Company']}' to '{company}'")
+                if company != contact["Company"]: changes.append(f"Company changed from '{contact['Company']}' to '{company}'")
                 if phone_number != contact["Phone Number"]: changes.append(f"Phone Number changed from '{contact['Phone Number']}' to '{phone_number}'")
                 if office_number != contact["Office Number"]: changes.append(f"Office Number changed from '{contact['Office Number']}' to '{office_number}'")
                 if office_address != contact["Office Address"]: changes.append(f"Office Address changed from '{contact['Office Address']}' to '{office_address}'")
@@ -217,6 +217,19 @@ def edit_contact_form(contact, index):
                 if events_invited_to != contact["Events Invited To"]: changes.append(f"Events Invited To changed from '{contact['Events Invited To']}' to '{events_invited_to}'")
                 if status != contact["Status"]: changes.append(f"Status changed from '{contact['Status']}' to '{status}'")
                 if tiering != contact["Tiering"]: changes.append(f"Tiering changed from '{contact['Tiering']}' to '{tiering}'")
+
+                # --- Track Profile Picture Change ---
+                if uploaded_file is not None:
+                    new_pic_bytes = uploaded_file.read()
+                    if new_pic_bytes != contact["Profile Picture"]:
+                        changes.append("Profile picture updated")
+                    updated_contact["Profile Picture"] = new_pic_bytes
+                elif contact["Profile Picture"] is not None and uploaded_file is None:
+                    # If there was a picture and now it's removed (by not uploading a new one)
+                    # This check is a bit tricky with how file_uploader behaves on re-renders without new file selection.
+                    # For simplicity, we assume if uploaded_file is None but current has a pic, it wasn't explicitly removed.
+                    # A more robust check might involve a "remove picture" checkbox.
+                    pass # Do nothing, keep existing pic if no new one uploaded
 
                 updated_contact["Name"] = name
                 updated_contact["Designation"] = designation
@@ -233,9 +246,9 @@ def edit_contact_form(contact, index):
                 updated_contact["Status"] = status
                 updated_contact["Tiering"] = tiering
                 
-                if uploaded_file is not None:
-                    updated_contact["Profile Picture"] = uploaded_file.read()
-                
+                # The uploaded_file logic is handled above for history tracking
+                # updated_contact["Profile Picture"] = new_pic_bytes # This line moved up
+
                 if changes:
                     # Join changes with an HTML line break for display in history
                     update_info = (f"Updated by {st.session_state.user_role} at {datetime.now().strftime('%d %b %y, %I:%M %p')}.<br>"
