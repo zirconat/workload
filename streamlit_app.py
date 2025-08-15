@@ -11,11 +11,37 @@ st.set_page_config(layout="wide", page_title="Contact Card App 📞")
 st.markdown(
     """
     <style>
-    .profile-pic-container img {
+    .profile-pic-display {
+        width: 100%; /* Take full width of its column */
+        display: flex; /* For centering the image */
+        justify-content: center; /* Center the image within its container */
+        align-items: center; /* Center vertically if height allows */
+        margin-bottom: 5px; /* Space below the image before the button */
+    }
+
+    /* Style for the image itself */
+    .profile-pic-display img {
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid #ddd; /* Optional: add a subtle border */
+        width: 150px; /* Set desired size for the displayed image */
+        height: 150px; /* Make it square for better roundness */
+        display: block; /* Remove extra space below image */
     }
+
+    /* Style for popover content (enlarged image) */
+    div[data-st-component="stPopover"] div[data-st-blocks] {
+        background-color: #444; /* Darker background for popover content */
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    div[data-st-component="stPopover"] div[data-st-blocks] img {
+        border-radius: 8px; /* Slightly rounded corners for enlarged image */
+        max-width: 100%; /* Ensure enlarged image fits popover */
+        height: auto;
+    }
+
     .contact-card {
         background-color: #333; /* Darker background for the card */
         padding: 20px;
@@ -23,6 +49,7 @@ st.markdown(
         margin-bottom: 20px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         color: #f0f2f6; /* Light text color */
+        border: 1px solid #555; /* Added border to the card */
     }
     .contact-card h3 {
         color: #f0f2f6;
@@ -57,7 +84,6 @@ st.markdown(
     .status-Active { background-color: #28a745; } /* Green */
     .status-Inactive { background-color: #dc3545; } /* Red */
 
-    /* Removed .info-grid as we're using st.columns directly now */
     .info-item {
         margin-bottom: 5px;
     }
@@ -85,13 +111,13 @@ if 'contacts_df' not in st.session_state:
         "Albert", "SC, Abc", "Australia", "CompanyA",
         "98765432", "N/A", "123 bsdlk slhf", "456 Home Rd, Perth",
         "sleeping", "NIL", "Deepavali", "NYR, ALSE",
-        "Active", "A", None, # No profile picture for Albert initially
+        "Active", "A", None,
         "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
     ]
     st.session_state.contacts_df.loc[1] = [
         "Bob The Builder", "Project Manager", "Canada", "BuildCo",
         "987-654-3210", "654-321-0987", "789 Construction Blvd, Toronto",
-        "101 Maple Lane, Toronto", "Gardening, Cycling", "None", # No profile picture for Bob initially
+        "101 Maple Lane, Toronto", "Gardening, Cycling", "None",
         "Canada Day", "Client Meeting", "Active", "B", None,
         "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
     ]
@@ -99,7 +125,7 @@ if 'contacts_df' not in st.session_state:
         "Charlie Chaplin", "Actor", "UK", "Comedy Gold Studios",
         "555-123-4567", "555-987-6543", "Studio 5, London",
         "1 Baker Street, London", "Filmmaking, Chess", "Vegan",
-        "Halloween", "Film Premiere", "Inactive", "C", None, # No profile picture for Charlie initially
+        "Halloween", "Film Premiere", "Inactive", "C", None,
         "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
     ]
 
@@ -109,9 +135,8 @@ if 'user_role' not in st.session_state:
 if 'show_add_form' not in st.session_state:
     st.session_state.show_add_form = False
 
-# New session state for in-card editing
 if 'editing_contact_index' not in st.session_state:
-    st.session_state.editing_contact_index = None # Stores the index of the contact being edited
+    st.session_state.editing_contact_index = None
 
 # --- 1. User Authentication ---
 def login():
@@ -171,7 +196,6 @@ def logout():
 def edit_contact_form(contact, index):
     st.markdown("<h4>Edit Contact</h4>", unsafe_allow_html=True)
     with st.form(key=f"edit_form_{index}"):
-        # Pre-fill with current contact data
         name = st.text_input("Name*", value=contact["Name"], key=f"edit_name_{index}")
         designation = st.text_input("Designation*", value=contact["Designation"], key=f"edit_designation_{index}")
         country = st.text_input("Country*", value=contact["Country"], key=f"edit_country_{index}")
@@ -194,14 +218,13 @@ def edit_contact_form(contact, index):
             submitted = st.form_submit_button("Update Contact")
         with col_cancel:
             if st.form_submit_button("Cancel"):
-                st.session_state.editing_contact_index = None # Exit edit mode
+                st.session_state.editing_contact_index = None
                 st.rerun()
 
         if submitted:
             if name and designation and country and company:
-                updated_contact = contact.copy() # Make a mutable copy
+                updated_contact = contact.copy()
                 
-                # Check for changes and record history
                 changes = []
                 if name != contact["Name"]: changes.append(f"Name changed from '{contact['Name']}' to '{name}'")
                 if designation != contact["Designation"]: changes.append(f"Designation changed from '{contact['Designation']}' to '{designation}'")
@@ -218,19 +241,15 @@ def edit_contact_form(contact, index):
                 if status != contact["Status"]: changes.append(f"Status changed from '{contact['Status']}' to '{status}'")
                 if tiering != contact["Tiering"]: changes.append(f"Tiering changed from '{contact['Tiering']}' to '{tiering}'")
 
-                # --- Track Profile Picture Change ---
+                new_pic_bytes = None
                 if uploaded_file is not None:
                     new_pic_bytes = uploaded_file.read()
-                    if new_pic_bytes != contact["Profile Picture"]:
+                    if contact["Profile Picture"] is None:
+                        changes.append("Profile picture added")
+                    elif new_pic_bytes != contact["Profile Picture"]:
                         changes.append("Profile picture updated")
                     updated_contact["Profile Picture"] = new_pic_bytes
-                elif contact["Profile Picture"] is not None and uploaded_file is None:
-                    # If there was a picture and now it's removed (by not uploading a new one)
-                    # This check is a bit tricky with how file_uploader behaves on re-renders without new file selection.
-                    # For simplicity, we assume if uploaded_file is None but current has a pic, it wasn't explicitly removed.
-                    # A more robust check might involve a "remove picture" checkbox.
-                    pass # Do nothing, keep existing pic if no new one uploaded
-
+                
                 updated_contact["Name"] = name
                 updated_contact["Designation"] = designation
                 updated_contact["Country"] = country
@@ -246,11 +265,7 @@ def edit_contact_form(contact, index):
                 updated_contact["Status"] = status
                 updated_contact["Tiering"] = tiering
                 
-                # The uploaded_file logic is handled above for history tracking
-                # updated_contact["Profile Picture"] = new_pic_bytes # This line moved up
-
                 if changes:
-                    # Join changes with an HTML line break for display in history
                     update_info = (f"Updated by {st.session_state.user_role} at {datetime.now().strftime('%d %b %y, %I:%M %p')}.<br>"
                                    + "<br>".join(changes))
                     updated_contact["Last Updated By"] = st.session_state.user_role
@@ -259,7 +274,7 @@ def edit_contact_form(contact, index):
 
                 st.session_state.contacts_df.loc[index] = updated_contact
                 st.success("Contact updated successfully!")
-                st.session_state.editing_contact_index = None # Exit edit mode
+                st.session_state.editing_contact_index = None
                 st.rerun()
             else:
                 st.error("Please fill in all required fields (Name, Designation, Country, Company).")
@@ -274,18 +289,28 @@ def display_contact_card(contact, index):
         col1, col2, col3 = st.columns([0.8, 3, 1])
         
         with col1:
-            st.markdown('<div class="profile-pic-container">', unsafe_allow_html=True)
+            st.markdown('<div class="profile-pic-display">', unsafe_allow_html=True)
+            # Display the main image
             if contact["Profile Picture"] is not None:
                 try:
-                    image = Image.open(io.BytesIO(contact["Profile Picture"]))
-                    st.image(image, width=90)
-                except:
-                    # Fallback if image data is corrupted or unreadable
-                    st.image("https://via.placeholder.com/90/cccccc/ffffff?text=No+Image", width=90, caption="No Image")
+                    display_image = Image.open(io.BytesIO(contact["Profile Picture"]))
+                    st.image(display_image, width=150)
+                except Exception as e:
+                    st.image("https://via.placeholder.com/150/cccccc/ffffff?text=Error", width=150, caption="Error loading image")
             else:
-                # Default image when no profile picture
-                st.image("https://via.placeholder.com/90/cccccc/ffffff?text=No+Image", width=90, caption="No Image")
+                st.image("https://via.placeholder.com/150/cccccc/ffffff?text=No+Image", width=150, caption="No Image")
             st.markdown('</div>', unsafe_allow_html=True)
+
+            # Popover button below the image
+            with st.popover("", help="Click to enlarge profile picture"):
+                if contact["Profile Picture"] is not None:
+                    try:
+                        enlarged_image = Image.open(io.BytesIO(contact["Profile Picture"]))
+                        st.image(enlarged_image, width=400, caption=f"Profile picture of {contact['Name']}")
+                    except Exception as e:
+                        st.image("https://via.placeholder.com/400/cccccc/ffffff?text=Error", width=400, caption="Error loading image")
+                else:
+                    st.image("https://via.placeholder.com/400/cccccc/ffffff?text=No+Image", width=400, caption="No Image")
 
         with col2:
             st.markdown(f"### {contact['Name']}")
@@ -300,7 +325,6 @@ def display_contact_card(contact, index):
             
         st.markdown("---")
 
-        # Split into 3 columns
         col_a, col_b, col_c = st.columns(3)
         with col_a:
             st.markdown(f'<div class="info-item"><b>Phone Number:</b> {contact["Phone Number"]}</div>', unsafe_allow_html=True)
@@ -313,7 +337,6 @@ def display_contact_card(contact, index):
         with col_c:
             st.markdown(f'<div class="info-item"><b>Office Address:</b> {contact["Office Address"]}</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="info-item"><b>Dietary Restrictions:</b> {contact["Dietary Restrictions"]}</div>', unsafe_allow_html=True)
-            # You might have an empty slot here or re-arrange for balance
 
         if contact["Last Updated On"]:
             st.info(f"Last updated by {contact['Last Updated By']} at {contact['Last Updated On']}")
@@ -390,7 +413,7 @@ def add_new_contact_form():
                 }
                 st.session_state.contacts_df = pd.concat([st.session_state.contacts_df, pd.DataFrame([new_contact])], ignore_index=True)
                 st.sidebar.success("Contact added successfully!")
-                st.session_state.show_add_form = False # Hide form after submission
+                st.session_state.show_add_form = False
                 st.rerun()
             else:
                 st.sidebar.error("Please fill in all required fields (Name, Designation, Country, Company).")
@@ -408,8 +431,6 @@ def search_and_filter():
 
     if search_query:
         search_query_lower = search_query.lower()
-        # Exclude 'Profile Picture' column from the string conversion and search
-        # Convert all other columns to string and then search
         mask = filtered_df.drop(columns=["Profile Picture"], errors='ignore').apply(
             lambda row: row.astype(str).str.lower().str.contains(search_query_lower, na=False).any(), axis=1
         )
@@ -445,7 +466,6 @@ def main():
         
         st.title("Contact Cards 📇")
 
-        # Admin specific actions
         if st.session_state.user_role == "admin":
             download_csv()
 
@@ -466,7 +486,6 @@ def main():
 
         filtered_contacts = search_and_filter()
 
-        # Display number of contacts
         st.markdown(f"**Currently displaying {len(filtered_contacts)} contacts.**")
 
         if not filtered_contacts.empty:
