@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from PIL import Image
 import io
-import base64 # Import the base64 module
+import base64
 
 # --- MUST BE THE FIRST STREAMLIT COMMAND ---
 st.set_page_config(layout="wide", page_title="Contact Card App 📞")
@@ -97,6 +97,8 @@ st.markdown(
 )
 
 # --- 0. Data Initialization and Session State Management ---
+# Initialize contacts_df ONLY IF IT DOES NOT EXIST
+# This ensures data persists across reruns and different user sessions
 if 'contacts_df' not in st.session_state:
     st.session_state.contacts_df = pd.DataFrame(
         columns=[
@@ -108,6 +110,7 @@ if 'contacts_df' not in st.session_state:
         ]
     )
     # Add some dummy data for demonstration
+    # This data will only be added the very first time the app runs or session starts
     st.session_state.contacts_df.loc[0] = [
         "Albert", "SC, Abc", "Australia", "CompanyA",
         "98765432", "N/A", "123 bsdlk slhf", "456 Home Rd, Perth",
@@ -160,37 +163,8 @@ def login():
 def logout():
     if st.sidebar.button("Logout"):
         st.session_state.user_role = None
-        # Re-initialize contacts_df to its original state (dummy data)
-        st.session_state.contacts_df = pd.DataFrame(
-            columns=[
-                "Name", "Designation", "Country", "Company", "Phone Number",
-                "Office Number", "Office Address", "Home Address", "Hobbies",
-                "Dietary Restrictions", "Celebrated Festivities",
-                "Events Invited To", "Status", "Tiering", "Profile Picture",
-                "Last Updated By", "Last Updated On", "History"
-            ]
-        )
-        st.session_state.contacts_df.loc[0] = [
-            "Albert", "SC, Abc", "Australia", "CompanyA",
-            "98765432", "N/A", "123 bsdlk slhf", "456 Home Rd, Perth",
-            "sleeping", "NIL", "Deepavali", "NYR, ALSE",
-            "Active", "A", None,
-            "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
-        ]
-        st.session_state.contacts_df.loc[1] = [
-            "Bob The Builder", "Project Manager", "Canada", "BuildCo",
-            "987-654-3210", "654-321-0987", "789 Construction Blvd, Toronto",
-            "101 Maple Lane, Toronto", "Gardening, Cycling", "None",
-            "Canada Day", "Client Meeting", "Active", "B", None,
-            "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
-        ]
-        st.session_state.contacts_df.loc[2] = [
-            "Charlie Chaplin", "Actor", "UK", "Comedy Gold Studios",
-            "555-123-4567", "555-987-6543", "Studio 5, London",
-            "1 Baker Street, London", "Filmmaking, Chess", "Vegan",
-            "Halloween", "Film Premiere", "Inactive", "C", None,
-            "System", datetime.now().strftime("%d %b %y, %I:%M %p"), []
-        ]
+        # Removed the contacts_df re-initialization here
+        # This allows the data to persist across logins/logouts
         st.rerun()
 
 # --- 2. Contact Card Display and Editing ---
@@ -412,6 +386,7 @@ def add_new_contact_form():
                     "Last Updated On": datetime.now().strftime("%d %b %y, %I:%M %p"),
                     "History": [f"Created by {st.session_state.user_role if st.session_state.user_role else 'Unknown'} at {datetime.now().strftime('%d %b %y, %I:%M %p')}"]
                 }
+                # Use pd.concat for appending a single row
                 st.session_state.contacts_df = pd.concat([st.session_state.contacts_df, pd.DataFrame([new_contact])], ignore_index=True)
                 st.sidebar.success("Contact added successfully!")
                 st.session_state.show_add_form = False
