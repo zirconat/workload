@@ -2,3 +2,4 @@ streamlit
 openpyxl
 streamlit_card
 plotly
+ipywidgets
