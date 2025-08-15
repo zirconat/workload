@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 from PIL import Image
 import io
+import base64 # Import the base64 module
 
 # --- MUST BE THE FIRST STREAMLIT COMMAND ---
 st.set_page_config(layout="wide", page_title="Contact Card App 📞")
@@ -302,7 +303,7 @@ def display_contact_card(contact, index):
             st.markdown('</div>', unsafe_allow_html=True)
 
             # Popover button below the image
-            with st.popover("", help="Click to enlarge profile picture"):
+            with st.popover("View Photo", help="Click to enlarge profile picture"):
                 if contact["Profile Picture"] is not None:
                     try:
                         enlarged_image = Image.open(io.BytesIO(contact["Profile Picture"]))
@@ -444,15 +445,26 @@ def download_csv():
     if st.session_state.user_role == "admin":
         st.sidebar.markdown("---")
         st.sidebar.title("Admin Actions")
-        df_for_download = st.session_state.contacts_df.drop(columns=["Profile Picture", "History"], errors='ignore').copy()
+        
+        # Create a copy of the DataFrame to modify for download
+        df_for_download = st.session_state.contacts_df.copy()
+
+        # Encode 'Profile Picture' bytes to Base64 strings
+        # Only encode if the value is not None (i.e., an image exists)
+        df_for_download['Profile Picture (Base64)'] = df_for_download['Profile Picture'].apply(
+            lambda x: base64.b64encode(x).decode('utf-8') if x is not None else ''
+        )
+        
+        # Drop the original 'Profile Picture' column (bytes) and 'History' column
+        df_for_download = df_for_download.drop(columns=["Profile Picture", "History"], errors='ignore')
         
         csv_export = df_for_download.to_csv(index=False).encode('utf-8')
         st.sidebar.download_button(
-            label="Download Active Contacts as CSV",
+            label="Download Contact Data (CSV)",
             data=csv_export,
-            file_name="active_contacts.csv",
+            file_name="contact_data_with_images.csv",
             mime="text/csv",
-            help="Downloads currently active contact data."
+            help="Downloads all contact data, including Base64 encoded profile pictures."
         )
 
 # --- 5. Main App Logic ---
