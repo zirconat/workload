@@ -57,12 +57,7 @@ st.markdown(
     .status-Active { background-color: #28a745; } /* Green */
     .status-Inactive { background-color: #dc3545; } /* Red */
 
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Three columns for information */
-        gap: 10px;
-        margin-top: 15px;
-    }
+    /* Removed .info-grid as we're using st.columns directly now */
     .info-item {
         margin-bottom: 5px;
     }
@@ -259,7 +254,6 @@ def edit_contact_form(contact, index):
 def display_contact_card(contact, index):
     st.markdown('<div class="contact-card">', unsafe_allow_html=True)
     
-    # Check if this contact is currently being edited
     if st.session_state.editing_contact_index == index:
         edit_contact_form(contact, index)
     else:
@@ -293,27 +287,30 @@ def display_contact_card(contact, index):
             
         st.markdown("---")
 
-        st.markdown('<div class="info-grid">', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-item"><b>Phone Number:</b> {contact["Phone Number"]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-item"><b>Office Number:</b> {contact["Office Number"]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-item"><b>Office Address:</b> {contact["Office Address"]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-item"><b>Home Address:</b> {contact["Home Address"]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-item"><b>Hobbies:</b> {contact["Hobbies"]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-item"><b>Dietary Restrictions:</b> {contact["Dietary Restrictions"]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-item"><b>Celebrated Festivities:</b> {contact["Celebrated Festivities"]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-item"><b>Events Invited To:</b> {contact["Events Invited To"]}</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Split into 3 columns
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            st.markdown(f'<div class="info-item"><b>Phone Number:</b> {contact["Phone Number"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="info-item"><b>Home Address:</b> {contact["Home Address"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="info-item"><b>Celebrated Festivities:</b> {contact["Celebrated Festivities"]}</div>', unsafe_allow_html=True)
+        with col_b:
+            st.markdown(f'<div class="info-item"><b>Office Number:</b> {contact["Office Number"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="info-item"><b>Hobbies:</b> {contact["Hobbies"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="info-item"><b>Events Invited To:</b> {contact["Events Invited To"]}</div>', unsafe_allow_html=True)
+        with col_c:
+            st.markdown(f'<div class="info-item"><b>Office Address:</b> {contact["Office Address"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="info-item"><b>Dietary Restrictions:</b> {contact["Dietary Restrictions"]}</div>', unsafe_allow_html=True)
+            # You might have an empty slot here or re-arrange for balance
 
         if contact["Last Updated On"]:
-            st.info(f"Last updated by {contact['Last Updated By']} at {contact['Last Updated On']}") # Retained st.info
+            st.info(f"Last updated by {contact['Last Updated By']} at {contact['Last Updated On']}")
 
         if st.session_state.user_role == "admin":
             col_edit, col_history = st.columns(2)
             with col_edit:
-                # Set editing_contact_index to this contact's index
                 if st.button(f"Edit {contact['Name']}", key=f"edit_button_{index}"):
                     st.session_state.editing_contact_index = index
-                    st.rerun() # Rerun to display the edit form
+                    st.rerun()
             with col_history:
                 with st.expander("View History"):
                     if contact["History"]:
